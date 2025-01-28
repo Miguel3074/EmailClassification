@@ -27,7 +27,7 @@ Este projeto oferece uma solução inteligente para classificar e responder a em
 
 ## Clone o repositório:
 
-### git clone https://github.com/seuusuario/email-refiner.git
+### git clone https://github.com/Miguel3074/EmailClassification.git
 ### cd email-refiner
 
 ## Instale as dependências:

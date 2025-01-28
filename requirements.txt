@@ -2,3 +2,4 @@ Flask
 werkzeug
 groq
 PyPDF2
+gunicorn

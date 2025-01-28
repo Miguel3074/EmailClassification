@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificação de Emails</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            font-size: 16px;
+            color: #555;
+        }
+        .form-group textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            background-color: #f9f9f9;
+        }
+        .form-group button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            background-color: #e9f7e7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .result h3 {
+            margin: 0;
+        }
+        .result p {
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Classificação de Emails</h1>
+    <form id="emailForm">
+        <div class="form-group">
+            <label for="email">Cole o conteúdo do email aqui:</label>
+            <textarea id="email" name="email" required></textarea>
+        </div>
+        <div class="form-group">
+            <button type="submit">Classificar e Responder</button>
+        </div>
+    </form>
+
+    <div id="result" class="result" style="display: none;">
+        <h3>Resultado da Classificação:</h3>
+        <p><strong>Categoria:</strong> <span id="category"></span></p>
+        <p><strong>Resposta sugerida:</strong> <span id="response"></span></p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('emailForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const emailText = document.getElementById('email').value;
+        const resultDiv = document.getElementById('result');
+        const categorySpan = document.getElementById('category');
+        const responseSpan = document.getElementById('response');
+
+        // Envia o email para o servidor Flask
+        fetch('/process', {
+            method: 'POST',
+            body: new URLSearchParams({ email: emailText }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Exibe os resultados
+            categorySpan.textContent = data.category;
+            console.log(data.category);
+            if(data.category === "produtivo"){
+                responseSpan.textContent = data.response;
+            }
+            resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Erro ao processar o email:', error);
+            alert('Erro ao processar o email. Tente novamente mais tarde.');
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
             align-items: center;
             height: 100vh;
         }
+
         .container {
             background-color: white;
             border-radius: 8px;
@@ -24,27 +26,36 @@
             max-width: 800px;
             padding: 20px;
         }
+
         h1 {
             text-align: center;
             color: #333;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         .form-group label {
             font-size: 16px;
             color: #555;
         }
-        .form-group textarea {
+
+        .form-group textarea,
+        .form-group input[type="file"] {
             width: 100%;
-            height: 150px;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            resize: none;
             background-color: #f9f9f9;
         }
+
+        .form-group textarea {
+            height: 150px;
+            resize: none;
+        }
+
         .form-group button {
             background-color: #4CAF50;
             color: white;
@@ -56,76 +67,100 @@
             width: 100%;
             transition: background-color 0.3s;
         }
+
         .form-group button:hover {
             background-color: #45a049;
         }
+
         .result {
             background-color: #e9f7e7;
             padding: 15px;
             border-radius: 5px;
             margin-top: 20px;
         }
+
         .result h3 {
             margin: 0;
         }
+
         .result p {
             font-size: 16px;
             color: #555;
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Classificação de Emails</h1>
-    <form id="emailForm">
-        <div class="form-group">
-            <label for="email">Cole o conteúdo do email aqui:</label>
-            <textarea id="email" name="email" required></textarea>
-        </div>
-        <div class="form-group">
-            <button type="submit">Classificar e Responder</button>
-        </div>
-    </form>
+    <div class="container">
+        <h1>Classificação de Emails</h1>
+        <form id="emailForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="email">Cole o conteúdo do email aqui:</label>
+                <textarea id="email" name="email"></textarea>
+            </div>
 
-    <div id="result" class="result" style="display: none;">
-        <h3>Resultado da Classificação:</h3>
-        <p><strong>Categoria:</strong> <span id="category"></span></p>
-        <p><strong>Resposta sugerida:</strong> <span id="response"></span></p>
+            <div class="form-group">
+                <label for="file">Ou faça o upload de um arquivo:</label>
+                <input type="file" id="file" name="file" accept=".txt, .pdf">
+            </div>
+
+            <div class="form-group">
+                <button type="submit">Classificar e Responder</button>
+            </div>
+        </form>
+
+        <div id="result" class="result" style="display: none;">
+            <h3>Resultado da Classificação:</h3>
+            <p><strong>Categoria:</strong> <span id="category"></span></p>
+            <div id="responseP" style="display: none;">
+                <p><strong>Resposta sugerida:</strong> <span id="response"></span></p>
+            </div>
+        </div>
     </div>
-</div>
 
-<script>
-    document.getElementById('emailForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+    <script>
+        document.getElementById('emailForm').addEventListener('submit', function (event) {
+            event.preventDefault();
 
-        const emailText = document.getElementById('email').value;
-        const resultDiv = document.getElementById('result');
-        const categorySpan = document.getElementById('category');
-        const responseSpan = document.getElementById('response');
+            const emailText = document.getElementById('email').value;
+            const fileInput = document.getElementById('file').files[0];
+            const resultDiv = document.getElementById('result');
+            const categorySpan = document.getElementById('category');
+            const responseSpan = document.getElementById('response');
+            const resultP = document.getElementById('responseP');  // Altere para 'resultP'
 
-        // Envia o email para o servidor Flask
-        fetch('/process', {
-            method: 'POST',
-            body: new URLSearchParams({ email: emailText }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Exibe os resultados
-            categorySpan.textContent = data.category;
-            console.log(data.category);
-            if(data.category === "produtivo"){
-                responseSpan.textContent = data.response;
+            const formData = new FormData();
+            if (emailText) {
+                formData.append('email', emailText);
             }
-            resultDiv.style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Erro ao processar o email:', error);
-            alert('Erro ao processar o email. Tente novamente mais tarde.');
-        });
-    });
-</script>
+            if (fileInput) {
+                formData.append('file', fileInput);
+            }
 
+            // Envia o email ou arquivo para o servidor Flask
+            fetch('/process', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Exibe os resultados
+                    categorySpan.textContent = data.category;
+                    if (data.category === "Produtivo") {
+                        responseSpan.textContent = data.response;
+                        resultP.style.display = 'block';  // Exibe a resposta
+                    } else {
+                        responseSpan.textContent = " ";
+                        resultP.style.display = 'none'; // Esconde a resposta
+                    }
+                    resultDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erro ao processar o email:', error);
+                    alert('Erro ao processar o email. Tente novamente mais tarde.');
+                });
+        });
+    </script>
 </body>
 </html>

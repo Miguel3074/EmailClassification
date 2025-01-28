@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificação de Emails</title>
+    <title>Email Refiner</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -41,14 +41,18 @@
             color: #555;
         }
 
-        .form-group textarea,
-        .form-group input[type="file"] {
+        .form-group textarea {
             width: 100%;
-            padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #f9f9f9;
+        }
+        
+        .form-group input[type="file"]{
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
         }
 
         .form-group textarea {
@@ -72,6 +76,26 @@
             background-color: #45a049;
         }
 
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .remove-file {
+            margin-top: 10px;
+            display: none;
+            color: #d9534f;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-file:hover {
+            text-decoration: underline;
+        }
+
         .result {
             background-color: #e9f7e7;
             padding: 15px;
@@ -87,6 +111,13 @@
             font-size: 16px;
             color: #555;
         }
+
+        .info{
+            margin-top: 0;
+            font-size: 12px;
+            color: #555;
+        }
+
     </style>
 </head>
 
@@ -101,12 +132,15 @@
             </div>
 
             <div class="form-group">
-                <label for="file">Ou faça o upload de um arquivo:</label>
+                <label for="file">Ou faça o upload de um arquivo: (.txt ou .pdf)</label>
                 <input type="file" id="file" name="file" accept=".txt, .pdf">
+                <p class="info">*caso ambos campos estejam preenchidos a prioridade é do texto</p>
+                <span class="remove-file" id="removeFile">Remover arquivo</span>
             </div>
 
             <div class="form-group">
                 <button type="submit">Classificar e Responder</button>
+                <div class="loading" id="loading">Processando...</div>
             </div>
         </form>
 
@@ -120,6 +154,7 @@
     </div>
 
     <script>
+        
         document.getElementById('emailForm').addEventListener('submit', function (event) {
             event.preventDefault();
 
@@ -128,33 +163,37 @@
             const resultDiv = document.getElementById('result');
             const categorySpan = document.getElementById('category');
             const responseSpan = document.getElementById('response');
-            const resultP = document.getElementById('responseP');  // Altere para 'resultP'
+            const resultP = document.getElementById('responseP');
+            const loadingIndicator = document.getElementById('loading');
+
+            loadingIndicator.style.display = "block";
+            resultDiv.style.display = "none";
 
             const formData = new FormData();
             if (emailText) {
                 formData.append('email', emailText);
             }
-            if (fileInput) {
+            else if (fileInput) {
                 formData.append('file', fileInput);
             }
 
-            // Envia o email ou arquivo para o servidor Flask
             fetch('/process', {
                 method: 'POST',
                 body: formData,
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Exibe os resultados
+
                     categorySpan.textContent = data.category;
                     if (data.category === "Produtivo") {
                         responseSpan.textContent = data.response;
-                        resultP.style.display = 'block';  // Exibe a resposta
+                        resultP.style.display = 'block';
                     } else {
                         responseSpan.textContent = " ";
-                        resultP.style.display = 'none'; // Esconde a resposta
+                        resultP.style.display = 'none';
                     }
                     resultDiv.style.display = 'block';
+                    loadingIndicator.style.display = "none";
                 })
                 .catch(error => {
                     console.error('Erro ao processar o email:', error);
@@ -163,4 +202,5 @@
         });
     </script>
 </body>
+
 </html>
